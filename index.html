@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lázaro y la Carta a García - Juego Interactivo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
+
+  body {
+    background-color: #f5f0d9;
+    background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+    font-family: 'MedievalSharp', cursive;
+    color: #3a2e1a;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #game-container {
+    background: #fff8e1;
+    border: 12px solid #7c5e27;
+    border-radius: 25px;
+    box-shadow: 6px 6px 20px #4e3b16cc;
+    max-width: 700px;
+    padding: 30px 40px;
+    text-align: center;
+    user-select: none;
+  }
+  h1 {
+    margin-top: 0;
+    font-size: 3em;
+    color: #5e3f0f;
+    text-shadow: 1px 1px 0 #b29259;
+    margin-bottom: 25px;
+  }
+  #story {
+    font-size: 1.35em;
+    line-height: 1.5em;
+    margin-bottom: 40px;
+    min-height: 160px;
+  }
+  .option {
+    background: #d4b76a;
+    border: 3px solid #7c5e27;
+    border-radius: 15px;
+    color: #3a2e1a;
+    cursor: pointer;
+    display: block;
+    font-size: 1.25em;
+    margin: 12px auto;
+    max-width: 90%;
+    padding: 14px 20px;
+    transition: background-color 0.3s ease;
+    box-shadow: inset 0 -3px 5px #a07f3b;
+  }
+  .option:hover {
+    background-color: #c4a55a;
+  }
+  .option:active {
+    background-color: #a38b3f;
+  }
+  footer {
+    margin-top: 35px;
+    font-size: 0.9em;
+    color: #8b6f3e;
+  }
+</style>
+</head>
+<body>
+  <div id="game-container">
+    <h1>🕮 Lázaro y la Carta a García 🕮</h1>
+    <div id="story">Cargando historia...</div>
+    <div id="options"></div>
+    <footer>
+      <p><em>Inspirado en el Mester de Clerecía, la novela picaresca y "La carta a García".</em></p>
+    </footer>
+  </div>
+
+<script>
+  const storyEl = document.getElementById('story');
+  const optionsEl = document.getElementById('options');
+
+  // Todas las escenas con texto y 4 opciones
+  const scenes = {
+    start: {
+      text: `El Arcipreste te entrega una carta sagrada y te dice: "No preguntes, solo entrégala a García". ¿Qué decides?`,
+      options: [
+        { text: "Aceptar la misión con respeto", next: "clerigo" },
+        { text: "Preguntar quién es García", next: "reprendido" },
+        { text: "Guardar la carta y no hacer nada", next: "peligro" },
+        { text: "Huir sin entregar la carta", next: "huida" },
+      ],
+    },
+    clerigo: {
+      text: `Un clérigo te recita versos del Mester de Clerecía: "El que cumple su deber salva su alma". ¿Qué haces?`,
+      options: [
+        { text: "Agradecer y partir", next: "cruce" },
+        { text: "Robar su libro por picardía", next: "castigo" },
+        { text: "Dormirte mientras habla", next: "pierdes" },
+        { text: "Preguntar por el camino", next: "sabio" },
+      ],
+    },
+    reprendido: {
+      text: `El Arcipreste te reprende: "¡Cumple sin preguntar, como el buen criado!"`,
+      options: [
+        { text: "Aceptar con humildad", next: "clerigo" },
+        { text: "Discutir sobre obediencia", next: "castigo" },
+        { text: "Pedir disculpas y salir", next: "cruce" },
+        { text: "Intentar devolver la carta", next: "rechazo" },
+      ],
+    },
+    peligro: {
+      text: `Guardas la carta, pero un ladrón disfrazado de fraile te asalta.`,
+      options: [
+        { text: "Resistir y luchar", next: "herido" },
+        { text: "Entregar la carta", next: "fracaso" },
+        { text: "Engañarlo con otra carta", next: "engaño" },
+        { text: "Pedir ayuda divina", next: "milagro" },
+      ],
+    },
+    huida: {
+      text: `Huyes pero te pierdes en un bosque oscuro lleno de peligros.`,
+      options: [
+        { text: "Arrepentirte y volver", next: "start" },
+        { text: "Buscar un ermitaño sabio", next: "sabio" },
+        { text: "Encender fuego y esperar", next: "espera" },
+        { text: "Escribir tu propia carta", next: "meta" },
+      ],
+    },
+    cruce: {
+      text: `Llegas a un cruce con cuatro caminos: llano, espinoso, oscuro y brillante.`,
+      options: [
+        { text: "Tomar el camino llano", next: "perezoso" },
+        { text: "Tomar el camino espinoso", next: "prueba" },
+        { text: "Ir por el camino oscuro", next: "misterio" },
+        { text: "Seguir el camino brillante", next: "exito" },
+      ],
+    },
+    sabio: {
+      text: `Un sabio te dice: "No todo el que pregunta halla la verdad".`,
+      options: [
+        { text: "Aceptar su enseñanza", next: "cruce" },
+        { text: "Burlarte del sabio", next: "castigo" },
+        { text: "Pedir un mapa antiguo", next: "mapa" },
+        { text: "Preguntar por García", next: "silencio" },
+      ],
+    },
+    castigo: {
+      text: `Un rayo cae y destruye tus zapatos. Debes seguir descalzo.`,
+      options: [
+        { text: "Regresar al clérigo", next: "clerigo" },
+        { text: "Seguir descalzo", next: "prueba" },
+        { text: "Pedir ayuda a un mendigo", next: "sabio" },
+        { text: "Lamentarte y llorar", next: "espera" },
+      ],
+    },
+    exito: {
+      text: `Has encontrado a García y entregado la carta. Él asiente con respeto. Misión cumplida.`,
+      options: [
+        { text: "Jugar otra vez", next: "start" },
+        { text: "Salir del juego", next: null },
+        { text: "Ver créditos", next: "creditos" },
+        { text: "Guardar historia (no implementado)", next: "meta" },
+      ],
+    },
+    perezoso: {
+      text: `El camino llano parece fácil, pero te adormeces y pierdes tiempo.`,
+      options: [
+        { text: "Seguir adelante", next: "exito" },
+        { text: "Descansar más", next: "espera" },
+        { text: "Volver al cruce", next: "cruce" },
+        { text: "Rezar por guía", next: "milagro" },
+      ],
+    },
+    prueba: {
+      text: `Superas espinas y pruebas, tu esfuerzo te fortalece.`,
+      options: [
+        { text: "Seguir", next: "exito" },
+        { text: "Descansar", next: "espera" },
+        { text: "Volver", next: "cruce" },
+        { text: "Rezar", next: "milagro" },
+      ],
+    },
+    misterio: {
+      text: `Una voz misteriosa te guía en la oscuridad.`,
+      options: [
+        { text: "Seguir la voz", next: "exito" },
+        { text: "Encender vela", next: "espera" },
+        { text: "Retroceder", next: "cruce" },
+        { text: "Hablar con la voz", next: "sabio" },
+      ],
+    },
+    espera: {
+      text: `Esperas pacientemente, el tiempo pasa lento.`,
+      options: [
+        { text: "Seguir esperando", next: "espera" },
+        { text: "Levantarte y seguir", next: "cruce" },
+        { text: "Rezar más", next: "milagro" },
+        { text: "Dormir profundamente", next: "pierdes" },
+      ],
+    },
+    pierdes: {
+      text: `Te duermes y la carta desaparece.`,
+      options: [
+        { text: "Reiniciar la aventura", next: "start" },
+        { text: "Buscar la carta perdida", next: "peligro" },
+        { text: "Llorar desconsolado", next: "espera" },
+        { text: "Aceptar la derrota", next: null },
+      ],
+    },
+    herido: {
+      text: `Luchas y quedas herido, pero la carta está segura.`,
+      options: [
+        { text: "Seguir adelante", next: "cruce" },
+        { text: "Buscar ayuda", next: "sabio" },
+        { text: "Descansar", next: "espera" },
+        { text: "Perder la carta", next: "pierdes" },
+      ],
+    },
+    fracaso: {
+      text: `El ladrón entrega la carta a sus amos. Fracaso total.`,
+      options: [
+        { text: "Reiniciar la aventura", next: "start" },
+        { text: "Lamentar lo ocurrido", next: "espera" },
+        { text: "Buscar venganza", next: "peligro" },
+        { text: "Aceptar la derrota", next: null },
+      ],
+    },
+    engaño: {
+      text: `Das una carta falsa, el ladrón huye confundido. Has salvado la misión.`,
+      options: [
+        { text: "Seguir adelante", next: "cruce" },
+        { text: "Descansar", next: "espera" },
+        { text: "Rezar", next: "milagro" },
+        { text: "Celebrar", next: "exito" },
+      ],
+    },
+    milagro: {
+      text: `Sientes una fuerza divina que te protege y guía.`,
+      options: [
+        { text: "Seguir con fe", next: "exito" },
+        { text: "Agradecer", next: "exito" },
+        { text: "Orar más", next: "espera" },
+        { text: "Volver atrás", next: "cruce" },
+      ],
+    },
+    mapa: {
+      text: `El sabio te entrega un mapa antiguo. ¿Lo usarás?`,
+      options: [
+        { text: "Sí, lo uso", next: "exito" },
+        { text: "No, confío en mí", next: "prueba" },
+        { text: "Guardar el mapa", next: "espera" },
+        { text: "Perder el mapa", next: "pierdes" },
+      ],
+    },
+    silencio: {
+      text: `El sabio guarda silencio y te mira fijamente.`,
+      options: [
+        { text: "Seguir adelante", next: "cruce" },
+        { text: "Preguntar otra vez", next: "castigo" },
+        { text: "Callar y meditar", next: "espera" },
+        { text: "Ignorar al sabio", next: "peligro" },
+      ],
+    },
+    rechazo: {
+      text: `Intentas devolver la carta pero el Arcipreste se enfurece.`,
+      options: [
+        { text: "Aceptar la misión", next: "clerigo" },
+        { text: "Escapar", next: "huida" },
+        { text: "Discutir más", next: "castigo" },
+        { text: "Arrepentirte", next: "start" },
+      ],
+    },
+    meta: {
+      text: `Tu aventura ha terminado por ahora, pero la historia continúa en tus pensamientos.`,
+      options: [
+        { text: "Jugar otra vez", next: "start" },
+        { text: "Salir", next: null },
+        { text: "Ver créditos", next: "creditos" },
+        { text: "Cerrar", next: null },
+      ],
+    },
+    creditos: {
+      text: `Juego creado por:\nSantiago Carvajal M\nDamian Franco Castrillon\nAndrés Felipe Valencia M\n\nInspirado en la literatura medieval y la novela picaresca.`,
+      options: [
+        { text: "Volver al inicio", next: "start" },
+        { text: "Salir", next: null },
+        { text: "Jugar otra vez", next: "start" },
+        { text: "Cerrar", next: null },
+      ],
+    },
+  };
+
+  // Función para mostrar la escena actual
+  function showScene(sceneKey) {
+    if (!sceneKey) {
+      storyEl.innerHTML = "Gracias por jugar.";
+      optionsEl.innerHTML = "";
+      return;
+    }
+    const scene = scenes[sceneKey];
+    // Mostrar texto con saltos de línea en créditos
+    if(sceneKey === 'creditos'){
+      storyEl.innerHTML = scene.text.replace(/\n/g, "<br>");
+    } else {
+      storyEl.textContent = scene.text;
+    }
+    optionsEl.innerHTML = "";
+
+    scene.options.forEach((option, i) => {
+      const btn = document.createElement("button");
+      btn.className = "option";
+      btn.textContent = option.text;
+      btn.addEventListener("click", () => {
+        showScene(option.next);
+      });
+      optionsEl.appendChild(btn);
+    });
+  }
+
+  // Iniciar juego
+  showScene("start");
+</script>
+</body>
+</html>
